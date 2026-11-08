@@ -73,15 +73,18 @@ Requirements: Node 20+, a WebGL2 browser (Chrome/Edge/Firefox/Safari), and `loca
 Copy `.env.example` to `.env` and set **one** of the following:
 
 ```bash
+GEMINI_API_KEY=...           # Gemini (default model gemini-3.5-flash, thinking=low)
 ANTHROPIC_API_KEY=...        # Claude (default model claude-opus-5-5, effort=low)
 OPENAI_API_KEY=...           # or any OpenAI-compatible endpoint via OPENAI_BASE_URL
-GEMINI_API_KEY=...
 AI_PROVIDER=ollama           # free & local, e.g. `ollama pull llava` / `qwen2.5vl`
 ```
 
-Keys are read only by the Node server and never reach the browser. The Anthropic provider uses the server-side refusal fallback (`fallbacks: "default"`). Set `ANTHROPIC_EFFORT` to trade latency for depth.
+If several keys are set, `AI_PROVIDER` picks one; otherwise the first provider with a key is used. Keys are read only by the Node server and never reach the browser.
 
-**Privacy:** frames are processed in the browser. A cropped JPEG of the object is sent only when an object has been locked (or you press Scan), at most every 4 s and rate-limited per client (`AI_REQUESTS_PER_MINUTE`).
+- **Gemini:** each attempt has a timeout, and on failure the server falls back through `GEMINI_FALLBACK_MODELS` (default `gemini-3.5-flash,gemini-3.1-flash-lite,gemini-flash-latest`). A model that returns 429 is cooled down for the `retryDelay` the API asks for. `GEMINI_THINKING` sets the thinking level (`low` is about 3× faster than the default).
+- **Anthropic:** uses the server-side refusal fallback (`fallbacks: "default"`). `ANTHROPIC_EFFORT` trades latency for depth.
+
+**Privacy:** hand tracking and on-device recognition run in the browser. With a provider configured, a JPEG of the region around your hand (up to 1024 px, or the whole frame if no hand is found) is sent while scanning, at most every 4 s and rate-limited per client (`AI_REQUESTS_PER_MINUTE`). Without a provider, nothing leaves the browser. Error messages shown in the UI are neutral; provider details stay in the server log.
 
 ---
 
@@ -133,10 +136,14 @@ webcam ──► MediaPipe Hand Landmarker (every frame, adaptive) ──► ges
    └─► every ~650 ms (own timer, never blocks rendering):
         EfficientDet-Lite0 → boxes; pick the one touching the hand (else: region around the hand)
         EfficientNet-Lite0 on that crop → ImageNet labels
-        knowledge resolver → template match  ─┐
-        7-frame vote, needs 4 agreeing  ──────┴─► LOCK
-                                               │
-         (optional) POST /api/recognize  ◄─────┘  crop + local hints → structured JSON (zod-validated)
+        knowledge resolver → template match
+
+   no provider:   7-frame vote, needs 4 agreeing ──► LOCK
+   with provider: no vote; every ~4 s POST /api/recognize
+                  (wide crop around the hand + local hints → zod-validated JSON,
+                   open-vocabulary name, holdingObject, primitive 3D model)
+                  holdingObject = false → keep scanning
+                  request fails → keep scanning (no weak local guess)
                                                │
         confidence < threshold?  → "Is this a …?" confirm card   else → OBJECT DETECTED card
                                                │
@@ -156,7 +163,7 @@ Honesty rules built into the pipeline:
 - Approximate models carry a disclaimer.
 - Every component shows its source and an identification-confidence bar.
 
-A bare hand doesn't lock as an object: crops taken around a hand only count through a template match.
+A bare hand doesn't lock as an object. Locally, crops taken around a hand only count through a template match; with a provider, the AI reports an empty hand. To save requests, hands that are pointing or making the rock sign are skipped, and a scene the AI already called empty is rechecked only after 20 s.
 
 ---
 
@@ -259,7 +266,7 @@ Manual and end-to-end checks used during development: Chromium with `--use-file-
 - **On-device recognition covers 80 COCO + 1000 ImageNet classes.** Anything outside those (most toys, niche gadgets) gets a vague or wrong local label. Use the confirm card, manual search, or a provider. A toy F1 car usually classifies as "race car" or "sports car" and maps to the F1 or sports-car template, but this depends on angle and lighting.
 - **Procedural templates are generic.** A recognised phone shows *a* phone, not *your* phone. They're badged APPROXIMATE and their internals have low confidence.
 - **AI primitive models are rough box/cylinder layouts.** Their quality depends on the provider.
-- **Not verified against live APIs here:** the Anthropic, Gemini and Ollama providers type-check and use the documented request formats, but no keys were available while building this. The OpenAI-compatible path was tested against a local stub, not the real OpenAI service.
+- **Provider testing:** Gemini is the provider used day to day during development. The Anthropic and Ollama providers type-check and follow the documented request formats but have had much less real-world use. The automated tests cover the OpenAI-compatible path against a local stub, not the real OpenAI service.
 - **Rendering:** the glow comes from additive point sprites and fresnel shaders rather than a separate bloom post-processing pass (that pass is costly on transparent canvases over video).
 - **External catalogs:** there is a generic JSON-catalog integration. Marketplace APIs such as Sketchfab are not built in, because they need OAuth tokens and per-model licence handling. The provider interface is the place to add them.
 - **Uploads:** `.gltf` files must embed their resources. Draco- and Meshopt-compressed files are not supported.
