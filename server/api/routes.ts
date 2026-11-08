@@ -74,6 +74,12 @@ async function handle(res: Response, fn: () => Promise<unknown>) {
   } catch (e) {
     const status = e instanceof ProviderError ? e.status : 500;
     console.error('[ai]', (e as Error).message);
-    res.status(status >= 400 && status < 600 ? status : 502).json({ error: (e as Error).message });
+    // the full message (with provider/model names) stays in the server log; the browser gets a neutral one
+    const msg =
+      status === 401 ? 'the AI service rejected the API key'
+      : status === 422 ? 'the AI declined to analyse this image'
+      : status === 429 || status === 503 || status === 504 || status === 502 ? 'the AI service is busy – try again in a moment'
+      : 'AI request failed';
+    res.status(status >= 400 && status < 600 ? status : 502).json({ error: msg });
   }
 }

@@ -1,1 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8fc8"/><stop offset=".5" stop-color="#a98bff"/><stop offset="1" stop-color="#3ff0e0"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="16" fill="url(#g)"/><rect x="18" y="18" width="28" height="28" rx="9" fill="#0b0f1a"/><circle cx="32" cy="32" r="6" fill="#fff"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="beam" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#c8f560" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#c8f560" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0a0b0e"/>
+  <!-- projection beam rising from the palm -->
+  <path d="M22 38 L10 12 H54 L42 38 Z" fill="url(#beam)"/>
+  <!-- exploded hologram cube -->
+  <path d="M32 6.5 L41 11.5 L32 16.5 L23 11.5 Z" fill="#a7b4ff"/>
+  <path d="M21.5 14 L30.5 19 V29 L21.5 24 Z" fill="#19c3b5"/>
+  <path d="M33.5 19 L42.5 14 V24 L33.5 29 Z" fill="#a98bff"/>
+  <!-- open hand -->
+  <g stroke="#c8f560" stroke-width="4.2" stroke-linecap="round" fill="none">
+    <path d="M24.5 47 V39"/>
+    <path d="M30 46 V36"/>
+    <path d="M35.5 46 V36.5"/>
+    <path d="M41 47 V40"/>
+    <path d="M20.5 52 L15.5 46"/>
+  </g>
+  <path d="M20 46 H44 V50 A9 9 0 0 1 35 59 H29 A9 9 0 0 1 20 50 Z" fill="#c8f560"/>
+</svg>

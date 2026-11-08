@@ -7,6 +7,8 @@ export interface SceneApi {
   pick(px: number, py: number): string | null;
   /** Move a component by a screen-space delta (drag / "pull it out"). */
   dragPart(id: string, fromPx: [number, number], toPx: [number, number]): void;
+  /** Let go of the dragged part so it glides back to its place in the model. */
+  releasePart(): void;
   /** Viewport pixel -> world point on the hologram plane (z = 0). */
   screenToWorld(px: number, py: number): [number, number, number];
   /** Current world position of the hologram's home point. */

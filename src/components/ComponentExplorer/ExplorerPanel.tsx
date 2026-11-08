@@ -32,7 +32,7 @@ export function ExplorerPanel() {
   if (!open) return null;
   const setTab = (t: 'components' | 'info') => s.set({ panels: { ...s.panels, explorerTab: t } });
   return (
-    <aside className="holo-panel thin-scroll fixed right-3 top-[92px] bottom-9 z-[45] flex w-[280px] flex-col overflow-hidden text-white" data-testid="explorer">
+    <aside className="holo-panel thin-scroll fixed left-3 top-[92px] bottom-9 z-[45] flex w-[280px] flex-col overflow-hidden text-white" data-testid="explorer">
       <div className="flex items-center gap-1 border-b border-white/[0.06] p-2">
         {(['components', 'info'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={clsx('rounded-md px-2 py-1 text-[11px] font-medium', tab === t ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white')}>
@@ -74,7 +74,7 @@ function TreeNode({ n, depth }: { n: Node; depth: number }) {
   return (
     <div>
       <div
-        className={clsx('group flex cursor-pointer items-center gap-1 rounded-md py-[3px] pr-1', sel ? 'bg-holo-yellow/10 text-holo-yellow' : 'text-white/80 hover:bg-white/[0.05]')}
+        className={clsx('group flex cursor-pointer items-center gap-1 rounded-md py-[3px] pr-1', sel ? 'bg-holo-accent/10 text-holo-accent' : 'text-white/80 hover:bg-white/[0.05]')}
         style={{ paddingLeft: 4 + depth * 12 }}
         onClick={() => (isGroup ? setOpen(!open) : s.select(sel ? null : n.c.id))}
         onMouseEnter={() => !isGroup && s.hover(n.c.id)}
@@ -86,7 +86,7 @@ function TreeNode({ n, depth }: { n: Node; depth: number }) {
         <span className={clsx('flex-1 truncate', isGroup && 'font-semibold text-white/65')}>{n.c.name}</span>
         {!isGroup && (
           <span className="hidden gap-1 group-hover:flex">
-            <button title="Isolate" onClick={(e) => (e.stopPropagation(), s.isolate(s.isolatedId === n.c.id ? null : n.c.id))} className={clsx('hover:text-white', s.isolatedId === n.c.id ? 'text-holo-yellow' : 'text-white/40')}>
+            <button title="Isolate" onClick={(e) => (e.stopPropagation(), s.isolate(s.isolatedId === n.c.id ? null : n.c.id))} className={clsx('hover:text-white', s.isolatedId === n.c.id ? 'text-holo-accent' : 'text-white/40')}>
               <Eye size={11} />
             </button>
             <button title="Zoom" onClick={(e) => (e.stopPropagation(), s.select(n.c.id), s.focus(s.focusId === n.c.id ? null : n.c.id))} className="text-white/40 hover:text-white">

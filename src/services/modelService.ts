@@ -128,7 +128,9 @@ export async function resolveModel(rec: RecognitionResult): Promise<Resolution> 
   // Level 2a – archetype
   const nameTerms = [rec.objectName, ...(rec.searchTerms ?? [])].filter(Boolean);
   const byName = matchArchetype(nameTerms.map((t, i) => ({ label: t, score: i === 0 ? 1 : 0.85, source: 'name' })));
-  const arch = getArchetype(rec.archetype ?? undefined) ?? (byName && byName.score >= 0.55 ? byName.archetype : undefined);
+  // A cloud result that comes with its own primitive model only uses an archetype the AI chose itself.
+  const tailored = rec.provider !== 'local' && (rec.primitiveModel?.length ?? 0) >= 2;
+  const arch = getArchetype(rec.archetype ?? undefined) ?? (!tailored && byName && byName.score >= 0.55 ? byName.archetype : undefined);
   if (arch) {
     steps.push(`Approximate archetype: ${arch.name}`);
     const model = modelFromArchetype(arch);
@@ -149,7 +151,7 @@ export async function resolveModel(rec: RecognitionResult): Promise<Resolution> 
         category: rec.category,
         subtitle: 'AI-generated primitive approximation',
         level: 'approximate',
-        sourceLabel: `AI primitives · ${rec.provider}`,
+        sourceLabel: 'AI-generated primitives',
         disclaimer: 'APPROXIMATE MODEL – boxes, cylinders and spheres laid out by an AI model from the photo. Not an accurate reconstruction.',
       },
     });
@@ -165,7 +167,7 @@ export async function resolveModel(rec: RecognitionResult): Promise<Resolution> 
     category: rec.category,
     subtitle: 'Recognition only',
     level: 'recognition',
-    sourceLabel: `Recognition · ${rec.provider}`,
+    sourceLabel: rec.provider === 'local' ? 'On-device recognition' : 'AI recognition',
     disclaimer: 'The object was identified, but no reliable component-level 3D model is available. Upload a GLB, or configure a cloud AI provider for a primitive approximation.',
     components: [],
     unmodelledComponents: rec.components.map((c) => ({ name: c.name, description: c.description })),

@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useHolo } from '@/state/store';
+import { sourceLabel } from '@/utils/text';
 import { ARCHETYPES } from '@/three/models/procedural';
 import { loadCatalog } from '@/services/modelService';
 import { storage, type HistoryItem, type UploadItem } from '@/services/storageService';
@@ -84,7 +85,7 @@ export function LibraryPanel() {
                 {h.thumbnail ? <img src={h.thumbnail} className="h-12 w-12 rounded-md object-cover" alt="" /> : <div className="h-12 w-12 rounded-md bg-white/5" />}
                 <div className="min-w-0">
                   <div className="truncate text-[11.5px] font-semibold">{h.name}</div>
-                  <div className="text-[10px] text-white/45">{h.category} · {Math.round(h.recognition.confidence * 100)}% · {h.recognition.provider}</div>
+                  <div className="text-[10px] text-white/45">{h.category} · {Math.round(h.recognition.confidence * 100)}% · {sourceLabel(h.recognition.provider)}</div>
                   <div className="text-[10px] text-white/30">{new Date(h.time).toLocaleString()}</div>
                 </div>
               </button>
@@ -107,8 +108,8 @@ const Empty = ({ text }: { text: string }) => <p className="col-span-full text-[
 
 function Card({ title, sub, tag, note, onClick, active, onDelete }: { title: string; sub: string; tag: string; note?: string; onClick: () => void; active?: boolean; onDelete?: () => void }) {
   return (
-    <div className={clsx('holo-card group relative cursor-pointer p-2.5 transition hover:border-white/20', active && '!border-holo-yellow/50')} onClick={onClick} data-testid={`lib-${title}`}>
-      <span className="holo-chip bg-holo-yellow/12 text-holo-yellow">{tag}</span>
+    <div className={clsx('holo-card group relative cursor-pointer p-2.5 transition hover:border-white/20', active && '!border-holo-accent/50')} onClick={onClick} data-testid={`lib-${title}`}>
+      <span className="holo-chip bg-holo-accent/12 text-holo-accent">{tag}</span>
       <div className="mt-1 text-[12px] font-semibold">{title}</div>
       <div className="text-[10.5px] text-white/45">{sub}</div>
       {note && <div className="mt-1 line-clamp-2 text-[9.5px] text-white/30">{note}</div>}

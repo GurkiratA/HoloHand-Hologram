@@ -6,6 +6,12 @@ import { loadByKey, modelFromUpload, playlist, resolveModel } from './modelServi
 import { storage } from './storageService';
 
 let current: LoadedModel | null = null;
+/** Bumped when the stage is cleared, so a load still in flight can't reappear afterwards. */
+let loadEpoch = 0;
+
+export function cancelModelLoads() {
+  loadEpoch++;
+}
 
 /** Swap the displayed model, disposing GPU resources of the previous one. */
 export function showModel(model: LoadedModel | null, key: string | null) {
@@ -20,6 +26,7 @@ export function showModel(model: LoadedModel | null, key: string | null) {
     isolatedId: null,
     focusId: null,
     explode: 0,
+    stageClear: model ? false : holo().stageClear,
   });
   viewState.reset();
   if (prev && prev !== model) setTimeout(() => prev.dispose(), 100);
@@ -27,9 +34,14 @@ export function showModel(model: LoadedModel | null, key: string | null) {
 
 export async function loadModelKey(key: string) {
   const s = holo();
+  const epoch = loadEpoch;
   s.set({ modelLoading: true });
   try {
     const model = await loadByKey(key);
+    if (epoch !== loadEpoch) {
+      model.dispose();
+      return;
+    }
     showModel(model, key);
     holo().set({ recognition: null, mode: holo().mode === 'live' ? 'explore' : holo().mode });
   } catch (e) {
@@ -75,20 +87,26 @@ export async function loadUploadedFile(file: File) {
 
 /** Pipeline steps 3–5 for a recognition result, plus history logging. */
 export async function applyRecognition(rec: RecognitionResult, thumbnail: string | null) {
+  const epoch = loadEpoch;
   holo().set({ modelLoading: true, recognition: rec });
   try {
     const res = await resolveModel(rec);
+    if (epoch !== loadEpoch) {
+      res.model?.dispose();
+      return;
+    }
     if (res.model) {
       showModel(res.model, res.model.descriptor.id);
       holo().set({ explode: 0.0 });
-      setTimeout(() => holo().model === res.model && holo().setExplode(0.35), 1600);
+      // spread the parts out so their labels show, once the reveal has played
+      setTimeout(() => holo().model === res.model && !holo().selectedId && holo().setExplode(0.6), 1600);
     } else {
       showModel(null, null);
       useHolo.setState({ descriptor: res.descriptor });
-      holo().togglePanel('explorer', true);
-      holo().set({ panels: { ...holo().panels, explorer: true, explorerTab: 'info' } });
     }
-    holo().set({ mode: 'explore', recognitionStatus: 'locked', recognitionMessage: res.steps.join(' → ') });
+    holo().togglePanel('explorer', true);
+    holo().set({ panels: { ...holo().panels, explorerTab: res.model ? 'components' : 'info' } });
+    holo().set({ stageClear: false, mode: 'explore', recognitionStatus: 'locked', recognitionMessage: res.steps.join(' → ') });
     await storage.addHistory({
       id: `${Date.now()}`,
       time: Date.now(),

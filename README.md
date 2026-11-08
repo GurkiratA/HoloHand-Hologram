@@ -92,13 +92,15 @@ Keys are read only by the Node server and never reach the browser. The Anthropic
 | Gesture | Action |
 |---|---|
 | 🖐️ **Open hand slowly** | Explode. Openness sets how far it separates. |
-| ✊ **Close your hand** | Pull the parts back together (fully closed = assembled) |
+| ✊ **Close your hand** | From open: pull the parts back together. A fist that was never open is ignored, so gripping an object does not move anything. |
 | 🤚 **Move / twist** | Hologram follows your palm (height and position). Twisting your hand rotates it. |
 | 👋 **Swipe** left/right (up/down) | Spin (tilt) with inertia |
-| ☝️ **Point** | Highlight the part under your fingertip. Hold ~1 s to select it. |
+| ☝️ **Point** | Aim at a part (the model stops moving while you aim). Hold ~0.7 s to lock onto it: the hologram then stays put, even if you move or drop your hand, until you point at another part. |
+| ✊ **Hold a fist** (with a part locked) | Let go of the part |
 | 🤏 **Pinch** | On a part: grab it and drag it out. On empty space: rotate the model. |
 | 👐 **Two open hands** | Move apart or together to zoom (dashed line shows the ratio) |
-| ✌️ **Peace** (hold) | Next model |
+| 👍 **Thumbs up** (hold) | Next model |
+| 🤘 **Rock sign** (hold ~0.6 s, either hand) | Clear the screen and scan again. Removes the hologram, labels, panels and controls; they return once a scan locks. |
 
 Gestures are debounced (a pose must hold for about 110 ms) and mutually exclusive: one active gesture at a time, with a priority order. Landmarks are exponentially smoothed. In **Settings** you can toggle each gesture, tune sensitivity and smoothing, switch hand-following on or off, and run a **calibration** (open hand, then fist) that personalises the openness thresholds.
 
@@ -107,11 +109,11 @@ Gestures are debounced (a pose must hold for about 110 ms) and mutually exclusiv
 - Drag to rotate. Wheel to zoom.
 - **Shift+wheel** or **right-drag** explodes.
 - Click a part to select it. Double-click to zoom into it. **Shift+drag** pulls a part out.
-- Keys: `E` toggle explode, `A` assemble, `R` reset view, `N` next model, `L` live scan, `1–5` render modes, `Esc` clear selection.
+- Keys: `E` toggle explode, `A` assemble, `R` reset view, `N` next model, `L` live scan, `C` clear the screen, `1–5` render modes, `Esc` clear selection.
 
 ### Modes
 
-- **Live:** camera + continuous recognition.
+- **Live:** clears the hologram, then camera + continuous recognition. The app starts here with nothing on screen.
 - **Explore:** recognition paused.
 - **Exploded / Assembly:** animate to 100 % / 0 %.
 - **Library:** catalog, templates, your uploads, recognition history.
@@ -230,7 +232,7 @@ npm test
 npm run typecheck
 ```
 
-`npm test` runs 40 tests:
+`npm test` runs the unit and API tests:
 
 - Gesture classification on **real MediaPipe landmarks**, captured from photos of an open hand, fist, peace sign, pointing and thumbs-up.
 - Gesture engine behaviour: debounce, dwell select, two-hand zoom, swipe, disabled gestures.
@@ -244,7 +246,7 @@ Manual and end-to-end checks used during development: Chromium with `--use-file-
 - the webcam opens
 - 1 and 2 hands are tracked
 - open hand explodes to 100 % and fist reassembles
-- peace, point and two-hands are recognised
+- thumbs up, point and two-hands are recognised
 - photo upload reaches the Level 3 path
 - a held object is detected and locked live
 - the slider explodes, labels follow their meshes, selection, isolate, every render mode, next model, library, and GLB upload work

@@ -29,7 +29,7 @@ export function captureScreenshot(video: HTMLVideoElement | null, webgl: HTMLCan
   if (webgl) ctx.drawImage(webgl, 0, 0, W, H);
   if (overlay) ctx.drawImage(overlay, 0, 0, W, H);
   // labels
-  ctx.font = '500 11px Inter, sans-serif';
+  ctx.font = '500 11px "Space Grotesk", sans-serif';
   ctx.textBaseline = 'middle';
   for (const [id, l] of labelLayout) {
     if (!l.visible) continue;

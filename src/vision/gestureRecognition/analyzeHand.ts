@@ -78,11 +78,22 @@ export function analyzeHand(pts: P3[], opts: AnalyzeOptions = {}): HandAnalysis 
   // In a fist the thumb rests on the curled index finger, so the index must be clearly un-curled for a pinch.
   const pinching = pinchRatio < pinchThresh && ratios[0] > fistR + (openR - fistR) * 0.3;
   const fistLike = openness < 0.25 && curled.every(Boolean);
+  // The pinky is the shortest finger, so "raised" gets a lower bar than the other fingers.
+  const pinkyRaised = d3(pts[LM.PINKY_TIP], w) > d3(pts[LM.PINKY_PIP], w) * 1.12 && ratios[3] > (fistR + openR) / 2 - 0.2;
+
+  // Thumbs up: fingers curled, thumb straight and pointing up, well clear of the fist. Real thumbs-up
+  // landmarks put the tip ~0.85 palm-lengths above the index knuckle; every other pose is at or below it.
+  const thumbTip = pts[LM.THUMB_TIP];
+  const thumbUp = (pts[LM.INDEX_MCP][1] - thumbTip[1]) / palmSize;
+  const thumbClear = d3(thumbTip, pts[LM.INDEX_MCP]) / palmSize;
+  const thumbAngle = Math.atan2(pts[LM.THUMB_MCP][1] - thumbTip[1], Math.abs(thumbTip[0] - pts[LM.THUMB_MCP][0]));
+  const thumbsUp = curled[1] && curled[2] && curled[3] && !extendedFingers[0] && thumbUp > 0.45 && thumbClear > 0.65 && thumbAngle > Math.PI / 6;
 
   let pose: HandPose = 'neutral';
-  if (fistLike && !pinching) pose = 'fist';
+  if (thumbsUp) pose = 'thumbsUp';
+  else if (fistLike && !pinching) pose = 'fist';
   else if (pinching && !(extendedFingers[0] && extendedFingers[1] && !curled[2])) pose = 'pinch';
-  else if (extendedFingers[0] && extendedFingers[1] && curled[2] && curled[3]) pose = 'peace';
+  else if (extendedFingers[0] && curled[1] && curled[2] && pinkyRaised) pose = 'clear';
   else if (extendedFingers[0] && curled[1] && curled[2] && curled[3]) pose = 'point';
   else if (openness > 0.66 && extendedFingers.every(Boolean)) pose = 'open';
 

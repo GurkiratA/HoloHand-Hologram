@@ -7,6 +7,7 @@ import { videoToViewport } from '@/utils/coords';
 import { viewState } from '@/three/interactions/viewState';
 import { sceneApi } from '@/three/interactions/sceneApi';
 import { nextModel } from '@/services/modelActions';
+import { clearStage } from '@/services/recognitionService';
 import type { GestureId } from '@/types';
 
 /** Shared with the overlay renderer. */
@@ -16,11 +17,12 @@ const HINTS: Partial<Record<GestureId, string>> = {
   open: 'Opening – exploding',
   fist: 'Closing – reassembling',
   move: 'Moving / twisting',
-  point: 'Pointing – hold to select',
+  point: 'Pointing – hold to lock this part',
   pinch: 'Pinch – grab a part',
   twoHands: 'Two hands – zoom',
-  peace: 'Peace – next model',
+  thumbsUp: 'Thumbs up – next model',
   swipe: 'Swipe – spin',
+  clear: 'Hold to clear the screen',
 };
 
 function createHandlers(): GestureHandlers {
@@ -69,14 +71,17 @@ function createHandlers(): GestureHandlers {
         else viewState.rotate((px - pinchLast[0]) * 0.008, (py - pinchLast[1]) * 0.006);
         pinchLast = [px, py];
       } else {
+        api.releasePart();
         pinchPart = null;
         pinchLast = null;
       }
     },
     point(px, py) {
-      const id = sceneApi()?.pick(px, py) ?? null;
+      viewState.hold();
+      return sceneApi()?.pick(px, py) ?? null;
+    },
+    pointHover(id) {
       holo().hover(id);
-      return id;
     },
     pointSelect(id) {
       holo().select(id);
@@ -84,8 +89,15 @@ function createHandlers(): GestureHandlers {
     pointEnd() {
       holo().hover(null);
     },
-    peace() {
-      void nextModel(1);
+    thumbsUp() {
+      // with an empty stage the user is scanning, so don't drop a sample model on top of the object
+      if (holo().model) void nextModel(1);
+    },
+    release() {
+      holo().set({ selectedId: null, isolatedId: null, focusId: null });
+    },
+    clear() {
+      clearStage({ hideControls: true });
     },
     active(g) {
       useHolo.setState({ activeGesture: g, gestureHint: g ? HINTS[g] ?? null : null });
@@ -110,6 +122,7 @@ export function useHandTracking(videoRef: React.RefObject<HTMLVideoElement | nul
         smoothing: st.smoothing,
         followHand: st.followHand,
         calibration: st.calibration,
+        partLocked: !!holo().selectedId,
       };
     });
     gestureRuntime.engine = engine;

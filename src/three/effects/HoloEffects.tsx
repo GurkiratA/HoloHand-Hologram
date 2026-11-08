@@ -42,13 +42,13 @@ export function HoloEffects({ rootRef }: { rootRef: RefObject<THREE.Group | null
         }`,
       fragmentShader: /* glsl */ `
         varying float vA;
-        void main() { float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard; gl_FragColor = vec4(0.55, 0.95, 1.0, (0.5 - d) * vA * 0.9); }`,
+        void main() { float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard; gl_FragColor = vec4(0.72, 0.77, 1.0, (0.5 - d) * vA * 0.9); }`,
     });
     return new THREE.Points(g, m);
   }, []);
 
   const ringMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: '#7ff6ff', transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+    () => new THREE.MeshBasicMaterial({ color: '#c9d2ff', transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
     [],
   );
 

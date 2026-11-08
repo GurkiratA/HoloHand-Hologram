@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 import { useHolo } from '@/state/store';
+import { sourceLabel } from '@/utils/text';
 import { LEVEL_BADGE } from '@/components/Sidebar/Sidebar';
 
 const LEVEL_TEXT = {
@@ -21,13 +22,13 @@ export function ObjectInfo() {
       <div>
         <div className="text-[14px] font-semibold">{d.name}</div>
         <div className="mt-1 flex flex-wrap gap-1">
-          <span className="holo-chip bg-holo-yellow/15 text-holo-yellow">{d.category}</span>
+          <span className="holo-chip bg-holo-accent/15 text-holo-accent">{d.category}</span>
           <span className={clsx('holo-chip', LEVEL_BADGE[d.level].cls)}>{LEVEL_BADGE[d.level].text}</span>
         </div>
         <p className="mt-1.5 text-white/55">{LEVEL_TEXT[d.level]}</p>
       </div>
       {d.disclaimer && (
-        <div className="flex gap-2 rounded-lg border border-holo-yellow/25 bg-holo-yellow/[0.06] p-2 text-[10.5px] leading-snug text-holo-yellow/90">
+        <div className="flex gap-2 rounded-lg border border-holo-accent/25 bg-holo-accent/[0.06] p-2 text-[10.5px] leading-snug text-holo-accent/90">
           <AlertTriangle size={13} className="mt-0.5 shrink-0" />
           <span>{d.disclaimer}</span>
         </div>
@@ -41,7 +42,7 @@ export function ObjectInfo() {
             <KV k="Brand" v={r.brand ?? 'Not identifiable'} />
             <KV k="Model" v={r.model ?? 'Not identifiable'} />
             <KV k="Confidence" v={`${Math.round(r.confidence * 100)}%`} />
-            <KV k="Provider" v={r.provider === 'local' ? 'On-device (MediaPipe)' : r.provider} />
+            <KV k="Source" v={sourceLabel(r.provider)} />
             {r.orientation && <KV k="Orientation" v={r.orientation} />}
           </dl>
           {r.characteristics.length > 0 && (

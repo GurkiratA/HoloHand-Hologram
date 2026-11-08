@@ -11,10 +11,11 @@ const GESTURE_NAMES: Record<keyof GestureToggles, string> = {
   fist: 'Closed fist → assemble',
   move: 'Move / twist → follow & rotate',
   swipe: 'Swipe → spin',
-  point: 'Point → highlight / select',
+  point: 'Point and hold → lock onto part',
   pinch: 'Pinch → grab & drag part',
   twoHands: 'Two hands → zoom',
-  peace: 'Peace → next model',
+  thumbsUp: 'Thumbs up → next model',
+  clear: 'Rock sign → clear the screen',
 };
 
 export function SettingsPanel() {
@@ -23,7 +24,7 @@ export function SettingsPanel() {
   if (!s.panels.settings) return null;
   const up = s.updateSettings;
   return (
-    <aside className="holo-panel thin-scroll fixed right-3 top-[92px] bottom-9 z-[46] w-[300px] overflow-y-auto p-3 text-white" data-testid="settings">
+    <aside className="holo-panel thin-scroll fixed left-3 top-[92px] bottom-9 z-[46] w-[300px] overflow-y-auto p-3 text-white" data-testid="settings">
       <div className="flex items-center">
         <div className="text-[13px] font-semibold">Settings</div>
         <button className="ml-auto text-white/40 hover:text-white" onClick={() => s.togglePanel('settings', false)} aria-label="Close settings">
@@ -83,7 +84,7 @@ export function SettingsPanel() {
         <Toggle label="Use cloud AI when configured" value={st.useCloudAI} onChange={(v) => up({ useCloudAI: v })} />
         <div className="mt-1.5 rounded-lg bg-white/[0.04] p-2 text-[10.5px] leading-snug text-white/55">
           {s.server.provider ? (
-            <>Cloud provider: <b className="text-white/85">{s.server.provider}</b> ({s.server.model}). On-device detection runs continuously; a cropped frame is sent only when an object is locked.</>
+            <>Cloud AI: <b className="text-white/85">connected</b>. When you hold something up, a cropped frame around your hand is sent to identify it.</>
           ) : s.server.reachable ? (
             <>API server running without an AI key – recognition is on-device only. Add a key to <code>.env</code> (see README) for brand/model detail and AI-generated approximations.</>
           ) : (
@@ -146,7 +147,7 @@ function Calibration() {
           </button>
         </div>
       </div>
-      {msg && <p className={clsx('mt-1', step === 'open' || step === 'fist' ? 'text-holo-yellow' : 'text-white/50')}>{msg}</p>}
+      {msg && <p className={clsx('mt-1', step === 'open' || step === 'fist' ? 'text-holo-accent' : 'text-white/50')}>{msg}</p>}
     </div>
   );
 }
@@ -169,7 +170,7 @@ function Toggle({ label, value, onChange, small }: { label: string; value: boole
         role="switch"
         aria-checked={value}
         onClick={() => onChange(!value)}
-        className={clsx('relative h-4 w-7 rounded-full transition', value ? 'bg-holo-cyan/70' : 'bg-white/15')}
+        className={clsx('relative h-4 w-7 rounded-full transition', value ? 'bg-holo-signal/70' : 'bg-white/15')}
       >
         <span className={clsx('absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all', value ? 'left-3.5' : 'left-0.5')} />
       </button>

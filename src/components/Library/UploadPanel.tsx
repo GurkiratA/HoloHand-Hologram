@@ -18,13 +18,13 @@ export function UploadPanel() {
   return (
     <Modal title="Manual model mode – upload a GLB / GLTF" onClose={close} testId="upload">
       <div
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center transition ${drag ? 'border-holo-cyan bg-holo-cyan/5' : 'border-white/15'}`}
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center transition ${drag ? 'border-holo-signal bg-holo-signal/5' : 'border-white/15'}`}
         onClick={() => input.current?.click()}
         onDragOver={(e) => (e.preventDefault(), setDrag(true))}
         onDragLeave={() => setDrag(false)}
         onDrop={(e) => (e.preventDefault(), setDrag(false), void take(e.dataTransfer.files[0]))}
       >
-        <UploadCloud className="text-holo-cyan" />
+        <UploadCloud className="text-holo-signal" />
         <div className="mt-2 text-[12px] font-medium">Drop a .glb / .gltf here, or click to choose</div>
         <div className="mt-1 text-[10.5px] text-white/45">Each mesh or top-level node becomes an explodable component. The file stays in this browser (IndexedDB).</div>
         <input ref={input} type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" className="hidden" onChange={(e) => void take(e.target.files?.[0])} data-testid="upload-input" />

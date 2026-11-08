@@ -14,7 +14,7 @@ export function createOpenAIProvider(): VisionProvider {
     model,
     async json<S extends z.ZodType>(req: JsonRequest<S>) {
       const user: unknown[] = [{ type: 'text', text: req.prompt }];
-      if (req.image) user.push({ type: 'image_url', image_url: { url: `data:${req.image.mediaType};base64,${req.image.data}`, detail: 'low' } });
+      if (req.image) user.push({ type: 'image_url', image_url: { url: `data:${req.image.mediaType};base64,${req.image.data}`, detail: 'high' } });
       const res = await fetch(`${base}/chat/completions`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', ...(key ? { authorization: `Bearer ${key}` } : {}) },

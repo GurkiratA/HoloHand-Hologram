@@ -14,7 +14,7 @@ export function Toasts() {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className={clsx('holo-panel !rounded-full px-3 py-1 text-[11px]', t.tone === 'error' && 'text-rose-200', t.tone === 'warn' && 'text-holo-yellow', t.tone === 'ok' && 'text-emerald-200', t.tone === 'info' && 'text-white/85')}
+            className={clsx('holo-panel px-3 py-1 text-[11px]', t.tone === 'error' && 'text-rose-200', t.tone === 'warn' && 'text-holo-accent', t.tone === 'ok' && 'text-emerald-200', t.tone === 'info' && 'text-white/85')}
           >
             {t.text}
           </motion.div>
@@ -22,7 +22,7 @@ export function Toasts() {
       </AnimatePresence>
       <AnimatePresence>
         {hint && (
-          <motion.div key={hint} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed bottom-[76px] left-1/2 -translate-x-1/2 rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-holo-yellow backdrop-blur" data-testid="gesture-hint">
+          <motion.div key={hint} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-x-0 bottom-[76px] mx-auto w-fit rounded bg-black/70 px-3 py-1 text-[11px] font-medium text-holo-accent backdrop-blur" data-testid="gesture-hint">
             {hint}
           </motion.div>
         )}

@@ -124,6 +124,8 @@ export interface RecognitionResult {
   /** Raw local labels that led to the result (for transparency). */
   evidence?: { label: string; score: number; source: string }[];
   notes?: string | null;
+  /** Cloud only: false when the AI saw no object in the hand. */
+  holdingObject?: boolean;
 }
 
 export type ConfidenceBand = 'high' | 'medium' | 'low';
@@ -135,12 +137,13 @@ export type GestureId =
   | 'fist'
   | 'point'
   | 'pinch'
-  | 'peace'
+  | 'thumbsUp'
   | 'twoHands'
   | 'swipe'
-  | 'move';
+  | 'move'
+  | 'clear';
 
-export type HandPose = 'open' | 'fist' | 'point' | 'pinch' | 'peace' | 'neutral';
+export type HandPose = 'open' | 'fist' | 'point' | 'pinch' | 'thumbsUp' | 'clear' | 'neutral';
 
 export interface ScreenPoint {
   /** Normalised viewport coordinates (0..1), already mirrored for selfie view. */

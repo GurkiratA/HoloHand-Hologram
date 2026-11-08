@@ -59,6 +59,8 @@ export interface HoloState {
   devices: MediaDeviceInfo[];
   deviceId: string | null;
   showFeed: boolean;
+  /** Everything but the camera is hidden (clear gesture). Ends when a scan locks or the user asks for the controls. */
+  stageClear: boolean;
   trackingStatus: TrackingStatus;
   hands: number;
   activeGesture: GestureId | null;
@@ -125,6 +127,7 @@ export const useHolo = create<HoloState>((set, get) => ({
   devices: [],
   deviceId: null,
   showFeed: true,
+  stageClear: false,
   trackingStatus: 'off',
   hands: 0,
   activeGesture: null,

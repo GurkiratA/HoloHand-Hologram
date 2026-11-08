@@ -25,6 +25,12 @@ export const viewState = {
     this.scaleTarget = 1.1;
     this.posTarget.set(0, 0, 0);
   },
+  /** Stop all motion right now, e.g. while the user is aiming at a part. */
+  hold() {
+    this.yawVel = 0;
+    this.pitchVel = 0;
+    this.idle = 0;
+  },
   rotate(dYaw: number, dPitch = 0) {
     this.yaw += dYaw;
     this.pitch = THREE.MathUtils.clamp(this.pitch + dPitch, -1.2, 1.2);

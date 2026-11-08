@@ -21,6 +21,8 @@ function SceneController() {
   const visuals = useRef<HoloVisuals | null>(null);
   const scratch = useMemo(() => new Map<string, THREE.Vector3>(), []);
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
+  /** Part currently held by a pinch / shift-drag; every other dragged part springs home. */
+  const heldPart = useRef<string | null>(null);
   const state = useRef({ explode: 0, reveal: 0, focusOffset: new THREE.Vector3(), focusScale: 1, frames: 0, fpsT: performance.now(), labelsVis: 0 });
 
   // build render layers when the model changes
@@ -91,6 +93,7 @@ function SceneController() {
         const r = root.current;
         const part = m?.parts.find((p) => p.meta.id === id);
         if (!part || !r || !m) return;
+        heldPart.current = id;
         const a = screenToWorld(from[0], from[1]);
         const b = screenToWorld(to[0], to[1]);
         const delta = b.sub(a);
@@ -100,6 +103,9 @@ function SceneController() {
         const d = delta.applyMatrix4(inv).sub(o);
         part.drag.add(d);
         if (part.drag.length() > 2.5) part.drag.setLength(2.5);
+      },
+      releasePart() {
+        heldPart.current = null;
       },
     });
     return () => setSceneApi(null);
@@ -134,6 +140,7 @@ function SceneController() {
       el.style.cursor = 'grabbing';
     };
     const onUp = (e: PointerEvent) => {
+      if (down?.part) sceneApi()?.releasePart();
       if (down && !down.moved && down.button === 0) {
         const id = pick(e.clientX, e.clientY);
         holo().select(id === holo().selectedId ? null : id);
@@ -182,10 +189,10 @@ function SceneController() {
     globalUniforms.uTime.value += dt;
     globalUniforms.uPixelRatio.value = gl.getPixelRatio();
 
-    // home point: centre of the area right of the sidebar
-    const inset = size.width > 760 ? SIDEBAR_INSET : 0;
-    const rightInset = s.panels.explorer || s.panels.settings ? 300 : 0;
-    screenToWorld(inset + (size.width - inset - rightInset) / 2, size.height * 0.47, home);
+    // home point: centre of the area between the left panels and the sidebar
+    const sidebar = size.width > 760 && !s.stageClear ? SIDEBAR_INSET : 0;
+    const panel = s.panels.explorer || s.panels.settings ? 300 : 0;
+    screenToWorld(panel + (size.width - panel - sidebar) / 2, size.height * 0.47, home);
 
     // explode smoothing
     st.explode += (s.explode - st.explode) * (1 - Math.exp(-dt * 6));
@@ -198,7 +205,7 @@ function SceneController() {
     viewState.pitch = THREE.MathUtils.clamp(viewState.pitch + viewState.pitchVel * dt, -1.2, 1.2);
     viewState.yawVel *= Math.exp(-dt * 2.2);
     viewState.pitchVel *= Math.exp(-dt * 2.2);
-    if (s.autoSpin && viewState.idle > 2.5 && !s.focusId) viewState.yaw += dt * 0.25;
+    if (s.autoSpin && viewState.idle > 2.5 && !s.focusId && !s.selectedId) viewState.yaw += dt * 0.25;
     viewState.scale += (viewState.scaleTarget - viewState.scale) * (1 - Math.exp(-dt * 6));
     viewState.pos.lerp(viewState.posTarget, 1 - Math.exp(-dt * 5));
 
@@ -211,7 +218,16 @@ function SceneController() {
       const fit = focusPart ? 1 : 1 / (1 + st.explode * s.intensity * 0.32);
       r.scale.setScalar(viewState.scale * st.focusScale * fit);
       r.position.copy(home).add(viewState.pos).add(st.focusOffset);
-      if (s.model) applyExplosion(s.model, st.explode, s.intensity, scratch);
+      if (s.model) {
+        // released parts glide back to their original place
+        const k = Math.exp(-dt * 5);
+        for (const p of s.model.parts) {
+          if (p.meta.id === heldPart.current || p.drag.lengthSq() === 0) continue;
+          p.drag.multiplyScalar(k);
+          if (p.drag.lengthSq() < 1e-6) p.drag.set(0, 0, 0);
+        }
+        applyExplosion(s.model, st.explode, s.intensity, scratch);
+      }
       r.updateMatrixWorld(true);
       if (focusPart) {
         focusPart.node.localToWorld(tmp.copy(focusPart.anchorLocal));
@@ -230,8 +246,8 @@ function SceneController() {
         camera: three.camera,
         width: size.width,
         height: size.height,
-        leftInset: inset,
-        rightInset: s.panels.explorer || s.panels.settings ? 300 : 0,
+        leftInset: panel,
+        rightInset: sidebar,
         autoVisibility: st.labelsVis,
         mode: s.settings.labels,
         selectedId: s.selectedId,

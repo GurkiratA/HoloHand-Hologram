@@ -52,7 +52,7 @@ export function ScanPanel({ videoRef }: { videoRef: React.RefObject<HTMLVideoEle
   };
 
   const askAI = async () => {
-    setBusy(`Asking ${s.server.provider}…`);
+    setBusy('Asking AI…');
     try {
       await describeWithAI(q);
       close();
@@ -68,8 +68,8 @@ export function ScanPanel({ videoRef }: { videoRef: React.RefObject<HTMLVideoEle
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="holo-card p-3">
           <div className="holo-label mb-1.5">From a photo</div>
-          <button className="flex h-28 w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/15 text-[11px] text-white/60 hover:border-holo-cyan/60" onClick={() => file.current?.click()}>
-            {preview ? <img src={preview} className="h-full w-full object-contain" alt="Uploaded" /> : (<><ImageUp size={18} className="mb-1 text-holo-cyan" />Upload a photo of the object</>)}
+          <button className="flex h-28 w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/15 text-[11px] text-white/60 hover:border-holo-signal/60" onClick={() => file.current?.click()}>
+            {preview ? <img src={preview} className="h-full w-full object-contain" alt="Uploaded" /> : (<><ImageUp size={18} className="mb-1 text-holo-signal" />Upload a photo of the object</>)}
           </button>
           <input ref={file} type="file" accept="image/*" className="hidden" onChange={(e) => void onPhoto(e.target.files?.[0])} data-testid="photo-input" />
           {s.cameraStatus === 'live' && (
@@ -102,7 +102,7 @@ export function ScanPanel({ videoRef }: { videoRef: React.RefObject<HTMLVideoEle
           <div className="mt-2 space-y-1">
             {catHit && (
               <button className="holo-btn w-full !justify-start" onClick={() => (void loadModelKey(`catalog:${catHit.entry.id}`), close())}>
-                <span className="holo-chip bg-holo-cyan/10 text-holo-cyan">Catalog</span> {catHit.entry.name}
+                <span className="holo-chip bg-holo-signal/10 text-holo-signal">Catalog</span> {catHit.entry.name}
               </button>
             )}
             {archetypeHits.map((h) => (
@@ -112,7 +112,7 @@ export function ScanPanel({ videoRef }: { videoRef: React.RefObject<HTMLVideoEle
             ))}
             {q.trim() && s.server.provider && (
               <button className="holo-btn w-full !justify-start" onClick={() => void askAI()} disabled={!!busy}>
-                <Sparkles size={12} className="text-holo-yellow" /> Ask {s.server.provider} about “{q}”
+                <Sparkles size={12} className="text-holo-accent" /> Ask AI about “{q}”
               </button>
             )}
             {q.trim() && !catHit && archetypeHits.length === 0 && !s.server.provider && (
@@ -122,7 +122,7 @@ export function ScanPanel({ videoRef }: { videoRef: React.RefObject<HTMLVideoEle
         </div>
       </div>
       {busy && (
-        <div className="mt-3 flex items-center gap-2 text-[11px] text-holo-cyan">
+        <div className="mt-3 flex items-center gap-2 text-[11px] text-holo-signal">
           <Loader2 size={13} className="animate-spin" /> {busy}
         </div>
       )}

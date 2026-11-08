@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 import { useHolo } from '@/state/store';
 import { confirmPending, rejectPending } from '@/services/recognitionService';
+import { sourceLabel } from '@/utils/text';
 
 const band = (c: number) => (c >= 0.75 ? 'High confidence' : c >= 0.5 ? 'Medium confidence' : 'Low confidence');
 
@@ -20,29 +21,27 @@ export function RecognitionOverlay() {
       {/* scanning pill */}
       <AnimatePresence>
         {scanning && (
-          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="pointer-events-none fixed left-1/2 top-3 z-30 -translate-x-1/2">
-            <div className="holo-panel flex items-center gap-2 !rounded-full px-3.5 py-1.5 text-[11px] text-white/85" data-testid="scan-pill">
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="pointer-events-none fixed inset-x-0 top-3 z-30 flex justify-center">
+            <div className="holo-panel flex items-center gap-2 px-3.5 py-1.5 text-[11px] text-white/85" data-testid="scan-pill">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-holo-cyan opacity-70" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-holo-cyan" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-holo-signal opacity-70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-holo-signal" />
               </span>
-              <span className="font-semibold tracking-wider text-holo-cyan">{status === 'analyzing' ? 'ANALYZING' : status === 'loading' ? 'LOADING' : 'SCANNING'}</span>
+              <span className="font-semibold tracking-wider text-holo-signal">{status === 'analyzing' ? 'ANALYZING' : status === 'loading' ? 'LOADING' : 'SCANNING'}</span>
               <span className="text-white/60">{msg}</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* scanning reticle (only when nothing is displayed – the hand rings take over otherwise) */}
+      {/* scan frame (only when nothing is displayed): corners only, so the object stays in plain view */}
       <AnimatePresence>
         {scanning && !hasModel && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} exit={{ opacity: 0 }} className="pointer-events-none fixed left-1/2 top-1/2 z-[15] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full">
-            <svg viewBox="0 0 100 100" className="animate-spin-slow absolute inset-0">
-              <circle cx="50" cy="50" r="48" fill="none" stroke="#3ff0e0" strokeWidth="0.4" strokeDasharray="2 3" />
-              <path d="M50 2 A48 48 0 0 1 98 50" fill="none" stroke="#3ff0e0" strokeWidth="0.9" />
-              <path d="M50 98 A48 48 0 0 1 2 50" fill="none" stroke="#ffd84a" strokeWidth="0.6" />
-            </svg>
-            <div className="animate-sweep absolute inset-x-0 h-1/2 bg-gradient-to-b from-transparent to-holo-cyan/20" />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none fixed inset-[12%] z-[15]">
+            <span className="scan-corner left-0 top-0 border-b-0 border-r-0" />
+            <span className="scan-corner right-0 top-0 border-b-0 border-l-0" />
+            <span className="scan-corner bottom-0 left-0 border-r-0 border-t-0" />
+            <span className="scan-corner bottom-0 right-0 border-l-0 border-t-0" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -54,12 +53,12 @@ export function RecognitionOverlay() {
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.04 }}
-            className="fixed left-1/2 top-1/2 z-30 w-[320px] -translate-x-1/2 -translate-y-1/2"
+            className="pointer-events-none fixed inset-x-0 top-14 z-30 flex justify-center"
             data-testid="detected-card"
           >
-            <div className="holo-panel overflow-hidden !border-holo-cyan/40 p-4 shadow-cyan">
-              <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-holo-cyan">
-                <span className="h-1.5 w-1.5 rounded-full bg-holo-cyan shadow-[0_0_8px_#3ff0e0]" /> OBJECT DETECTED
+            <div className="holo-panel pointer-events-auto w-[320px] overflow-hidden !border-holo-signal/40 p-4 shadow-signal">
+              <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-holo-signal">
+                <span className="h-1.5 w-1.5 rounded-full bg-holo-signal shadow-[0_0_8px_#a7b4ff]" /> OBJECT DETECTED
               </div>
               <dl className="space-y-1 font-mono text-[11.5px]">
                 <Line k="Object" v={rec.objectName} />
@@ -67,10 +66,10 @@ export function RecognitionOverlay() {
                 {rec.brand && <Line k="Brand" v={rec.brand} />}
                 <Line k="Recognition" v={`${band(rec.confidence)} (${Math.round(rec.confidence * 100)}%)`} />
                 <Line k="Components" v={`${rec.components.length} identified`} />
-                <Line k="Source" v={rec.provider === 'local' ? 'on-device' : rec.provider} />
+                <Line k="Source" v={sourceLabel(rec.provider)} />
               </dl>
               <div className="mt-3 h-0.5 overflow-hidden rounded bg-white/10">
-                <motion.div className="h-full bg-holo-cyan" initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 2.5, ease: 'linear' }} />
+                <motion.div className="h-full bg-holo-signal" initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 2.5, ease: 'linear' }} />
               </div>
               <div className="mt-2.5 flex gap-1.5">
                 <button className="holo-btn flex-1" onClick={() => void confirmPending()}>Continue</button>
@@ -84,16 +83,19 @@ export function RecognitionOverlay() {
       {/* confirm (low confidence) */}
       <AnimatePresence>
         {status === 'confirm' && rec && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed left-1/2 top-1/2 z-30 w-[320px] -translate-x-1/2 -translate-y-1/2" data-testid="confirm-card">
-            <div className="holo-panel p-4 text-white">
-              <div className="text-[11px] font-bold tracking-[0.2em] text-holo-yellow">NOT SURE</div>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="pointer-events-none fixed inset-x-0 top-14 z-30 flex justify-center" data-testid="confirm-card">
+            <div className="holo-panel pointer-events-auto w-[320px] p-4 text-white">
+              <div className="text-[11px] font-bold tracking-[0.2em] text-holo-accent">NOT SURE</div>
               <p className="mt-1.5 text-[13px]">
-                Is this a <span className="font-semibold text-holo-yellow">{rec.objectName}</span>?
+                Is this a <span className="font-semibold text-holo-accent">{rec.objectName}</span>?
               </p>
               <p className="mt-1 text-[10.5px] text-white/50">
                 {band(rec.confidence)} ({Math.round(rec.confidence * 100)}%).{' '}
                 {rec.evidence?.slice(0, 3).map((e) => e.label.split(',')[0]).join(', ')}
               </p>
+              <div className="mt-3 h-0.5 overflow-hidden rounded bg-white/10">
+                <motion.div className="h-full bg-holo-accent" initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 5, ease: 'linear' }} />
+              </div>
               <div className="mt-3 flex gap-1.5">
                 <button className="holo-btn holo-btn-on flex-1" onClick={() => void confirmPending()} data-testid="confirm-yes">Yes</button>
                 <button className="holo-btn flex-1" onClick={rejectPending}>No, rescan</button>

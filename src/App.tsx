@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { PanelTop } from 'lucide-react';
 import { CameraView } from '@/components/Camera/CameraView';
 import { CameraFallback } from '@/components/Camera/CameraFallback';
 import { TopControls } from '@/components/Camera/TopControls';
@@ -19,8 +20,9 @@ import { useCamera } from '@/hooks/useCamera';
 import { useHandTracking } from '@/hooks/useHandTracking';
 import { useRecognition } from '@/hooks/useRecognition';
 import { useServerStatus } from '@/hooks/useServerStatus';
-import { holo } from '@/state/store';
-import { loadModelKey, nextModel } from '@/services/modelActions';
+import { holo, useHolo } from '@/state/store';
+import { nextModel } from '@/services/modelActions';
+import { clearStage } from '@/services/recognitionService';
 import type { RenderMode } from '@/types';
 
 const RENDER_KEYS: RenderMode[] = ['hologram', 'wireframe', 'points', 'solid', 'xray'];
@@ -32,11 +34,7 @@ export default function App() {
   useCamera(videoRef);
   useHandTracking(videoRef);
   useRecognition(videoRef);
-
-  // Show a hologram immediately so the scene is never empty.
-  useEffect(() => {
-    void loadModelKey('catalog:f1-car').then(() => holo().set({ mode: 'live' }));
-  }, []);
+  const stageClear = useHolo((s) => s.stageClear);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -48,6 +46,10 @@ export default function App() {
       else if (e.key === 'r') s.resetView();
       else if (e.key === 'n') void nextModel(1);
       else if (e.key === 'l') setMode('live');
+      else if (e.key === 'c') {
+        if (s.stageClear) s.set({ stageClear: false });
+        else clearStage({ hideControls: true });
+      }
       else if (e.key === 'Escape') s.set({ selectedId: null, isolatedId: null, focusId: null });
       else if (/^[1-5]$/.test(e.key)) s.setRenderMode(RENDER_KEYS[Number(e.key) - 1]);
     };
@@ -62,10 +64,18 @@ export default function App() {
       <HandOverlay ref={overlayRef} />
       <LabelLayer />
       <RecognitionOverlay />
-      <Sidebar />
-      <TopControls videoRef={videoRef} overlayRef={overlayRef} />
-      <ModeBar />
-      <StatusBar />
+      {stageClear ? (
+        <button className="holo-btn fixed bottom-3 right-3 z-40 opacity-60 hover:opacity-100" onClick={() => holo().set({ stageClear: false })} data-testid="btn-show-controls">
+          <PanelTop size={12} /> Show controls
+        </button>
+      ) : (
+        <>
+          <Sidebar />
+          <TopControls videoRef={videoRef} overlayRef={overlayRef} />
+          <ModeBar />
+          <StatusBar />
+        </>
+      )}
       <ExplorerPanel />
       <SettingsPanel />
       <CameraFallback />

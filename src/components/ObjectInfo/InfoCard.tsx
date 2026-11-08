@@ -39,7 +39,7 @@ export function InfoCard() {
             </button>
           </div>
           <p className="mt-2 text-[11px] leading-snug text-white/75">{part.description}</p>
-          {part.aiNote && <p className="mt-1.5 rounded-md bg-holo-cyan/[0.07] p-1.5 text-[10.5px] leading-snug text-holo-cyan/90">AI: {part.aiNote}</p>}
+          {part.aiNote && <p className="mt-1.5 rounded-md bg-holo-signal/[0.07] p-1.5 text-[10.5px] leading-snug text-holo-signal/90">AI: {part.aiNote}</p>}
           <dl className="mt-2 space-y-1 text-[10.5px]">
             {part.function && <Row k="Function" v={part.function} />}
             {part.location && <Row k="Position" v={part.location} />}
@@ -52,7 +52,7 @@ export function InfoCard() {
               <span className="font-mono">{Math.round(part.confidence * 100)}%</span>
             </div>
             <div className="mt-1 h-1 overflow-hidden rounded bg-white/10">
-              <div className={clsx('h-full rounded', part.confidence >= 0.7 ? 'bg-emerald-400' : part.confidence >= 0.45 ? 'bg-holo-yellow' : 'bg-rose-400')} style={{ width: `${part.confidence * 100}%` }} />
+              <div className={clsx('h-full rounded', part.confidence >= 0.7 ? 'bg-emerald-400' : part.confidence >= 0.45 ? 'bg-holo-accent' : 'bg-rose-400')} style={{ width: `${part.confidence * 100}%` }} />
             </div>
           </div>
           <div className="mt-2.5 flex gap-1.5">

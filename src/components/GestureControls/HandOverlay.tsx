@@ -29,36 +29,34 @@ export const HandOverlay = forwardRef<HTMLCanvasElement>(function HandOverlay(_,
       const st = holo().settings;
       const snap = gestureRuntime.engine?.snapshot;
       if (!snap) return;
+      // a cleared screen stays clear: no hand graphics over the object
+      const hands = holo().stageClear ? [] : snap.hands;
 
-      for (const hand of snap.hands) {
+      for (const hand of hands) {
         const pts = hand.pts;
         const A = hand.analysis;
         const isPrimary = hand.key === snap.primaryKey;
         const tint = isPrimary && snap.active ? activeColor(snap.active) : 'rgba(255,255,255,';
         if (st.showRings) {
-          const r = A.palmSize * 2.35;
+          // corner brackets around the hand, with an openness meter along the bottom
+          const r = A.palmSize * 1.9;
+          const arm = r * 0.3;
+          const [x, y] = A.palm;
           ctx.save();
-          ctx.shadowColor = 'rgba(255,255,255,0.8)';
-          ctx.shadowBlur = 14;
           ctx.strokeStyle = `${tint}0.9)`;
-          ctx.lineWidth = 2.2;
+          ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(A.palm[0], A.palm[1], r, 0, Math.PI * 2);
+          for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+            ctx.moveTo(x + sx * r, y + sy * (r - arm));
+            ctx.lineTo(x + sx * r, y + sy * r);
+            ctx.lineTo(x + sx * (r - arm), y + sy * r);
+          }
           ctx.stroke();
-          ctx.shadowBlur = 0;
-          ctx.strokeStyle = `${tint}0.35)`;
-          ctx.lineWidth = 1;
-          ctx.setLineDash([4, 10]);
-          ctx.lineDashOffset = -t * 30;
+          ctx.strokeStyle = 'rgba(200,245,96,0.9)';
+          ctx.lineWidth = 3;
           ctx.beginPath();
-          ctx.arc(A.palm[0], A.palm[1], r * 1.08, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          // openness arc
-          ctx.strokeStyle = 'rgba(255,216,74,0.85)';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.arc(A.palm[0], A.palm[1], r * 1.15, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * A.openness);
+          ctx.moveTo(x - r, y + r + 8);
+          ctx.lineTo(x - r + 2 * r * A.openness, y + r + 8);
           ctx.stroke();
           ctx.restore();
         }
@@ -80,11 +78,27 @@ export const HandOverlay = forwardRef<HTMLCanvasElement>(function HandOverlay(_,
         }
       }
 
+      // clear gesture: hold progress
+      if (snap.clear) {
+        const { at: [x, y], progress } = snap.clear;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(x, y, 30, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = '#ff6b7d';
+        ctx.beginPath();
+        ctx.arc(x, y, 30, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       // two-hand zoom line
       if (snap.twoHands) {
         const { a, b, ratio } = snap.twoHands;
         ctx.save();
-        ctx.strokeStyle = 'rgba(255,216,74,0.9)';
+        ctx.strokeStyle = 'rgba(200,245,96,0.9)';
         ctx.setLineDash([6, 6]);
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -92,7 +106,7 @@ export const HandOverlay = forwardRef<HTMLCanvasElement>(function HandOverlay(_,
         ctx.lineTo(b[0], b[1]);
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.font = '600 11px Inter, sans-serif';
+        ctx.font = '600 11px "Space Grotesk", sans-serif';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
         ctx.shadowColor = 'black';
@@ -103,7 +117,7 @@ export const HandOverlay = forwardRef<HTMLCanvasElement>(function HandOverlay(_,
       // pinch cursor
       if (snap.pinchPoint) {
         const [x, y] = snap.pinchPoint;
-        ctx.strokeStyle = '#ffd84a';
+        ctx.strokeStyle = '#c8f560';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(x, y, 9 + Math.sin(t * 8) * 1.5, 0, Math.PI * 2);
@@ -112,12 +126,12 @@ export const HandOverlay = forwardRef<HTMLCanvasElement>(function HandOverlay(_,
       // pointer + dwell progress
       if (snap.pointTip) {
         const [x, y] = snap.pointTip;
-        ctx.fillStyle = '#3ff0e0';
+        ctx.fillStyle = '#a7b4ff';
         ctx.beginPath();
         ctx.arc(x, y, 4, 0, Math.PI * 2);
         ctx.fill();
         if (snap.dwell > 0) {
-          ctx.strokeStyle = '#3ff0e0';
+          ctx.strokeStyle = '#a7b4ff';
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           ctx.arc(x, y, 13, -Math.PI / 2, -Math.PI / 2 + snap.dwell * Math.PI * 2);
@@ -137,11 +151,13 @@ function activeColor(g: string) {
     case 'pinch':
     case 'twoHands':
     case 'open':
-      return 'rgba(255,236,170,';
+      return 'rgba(200,245,96,';
     case 'point':
-      return 'rgba(140,255,245,';
+      return 'rgba(167,180,255,';
     case 'fist':
       return 'rgba(255,170,200,';
+    case 'clear':
+      return 'rgba(255,107,125,';
     default:
       return 'rgba(255,255,255,';
   }

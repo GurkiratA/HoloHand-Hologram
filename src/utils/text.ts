@@ -48,3 +48,10 @@ export function similarity(a: string, b: string): number {
   if (score < 1 && (la.includes(lb) || lb.includes(la))) score = Math.max(score, 0.75);
   return score;
 }
+
+/** User-facing name for where a recognition came from – never names the cloud vendor. */
+export function sourceLabel(provider: string | null | undefined): string {
+  if (!provider || provider === 'local') return 'On-device';
+  if (provider === 'manual') return 'Manual';
+  return 'Cloud AI';
+}

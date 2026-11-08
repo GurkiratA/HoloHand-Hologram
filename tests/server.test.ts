@@ -31,6 +31,24 @@ describe('schema normalisation', () => {
     expect(n.primitiveModel![0].size).toEqual([4, 1, 1]);
     expect(n.provider).toBe('openai');
   });
+  it('accepts nulls and wrong types from smaller models instead of failing', () => {
+    const n = normalize(
+      { holdingObject: false, objectName: null, category: null, confidence: null, components: [{ name: null, description: 3 }], primitiveModel: [{ shape: 'blob', size: null }], characteristics: null },
+      'gemini',
+    );
+    expect(n.objectName).toBe('');
+    expect(n.confidence).toBe(0);
+    expect(n.components[0]).toMatchObject({ name: 'Part', description: '3' });
+    expect(n.primitiveModel![0]).toMatchObject({ shape: 'box', size: [1, 1, 1] });
+    expect(normalize({ objectName: 'Earbud', category: null, confidence: 0.8 }, 'gemini')).toMatchObject({ objectName: 'Earbud', category: 'Unknown', holdingObject: true });
+  });
+  it('treats an empty hand as no object', () => {
+    const n = normalize({ ...sampleReply, holdingObject: false }, 'anthropic');
+    expect(n.holdingObject).toBe(false);
+    expect(n.objectName).toBe('');
+    expect(n.confidence).toBe(0);
+    expect(normalize(sampleReply, 'anthropic').holdingObject).toBe(true);
+  });
   it('extracts JSON from fenced replies', () => {
     expect(extractJson('```json\n{"a":1}\n```')).toEqual({ a: 1 });
     expect(extractJson('Sure! {"a":2} hope this helps')).toEqual({ a: 2 });

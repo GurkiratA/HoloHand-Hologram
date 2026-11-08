@@ -9,7 +9,8 @@ export interface GestureToggles {
   point: boolean;
   pinch: boolean;
   twoHands: boolean;
-  peace: boolean;
+  thumbsUp: boolean;
+  clear: boolean;
 }
 
 export interface Settings {
@@ -37,7 +38,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  gestures: { open: true, fist: true, move: true, swipe: true, point: true, pinch: true, twoHands: true, peace: true },
+  gestures: { open: true, fist: true, move: true, swipe: true, point: true, pinch: true, twoHands: true, thumbsUp: true, clear: true },
   gesturesEnabled: true,
   sensitivity: 1,
   smoothing: 0.55,
